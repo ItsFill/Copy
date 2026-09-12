@@ -62,7 +62,7 @@ public partial class MainWindow : Window
         }
     }
 
-    public void copyButton_Click(object sender, RoutedEventArgs e)
+    public async void copyButton_Click(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(fromFile) || string.IsNullOrWhiteSpace(toFolder))
         {
@@ -70,6 +70,26 @@ public partial class MainWindow : Window
         }
         string fileName = System.IO.Path.GetFileName(fromFile);
         string copyTo = System.IO.Path.Combine(toFolder, fileName);
-        File.Copy(fromFile, copyTo, true);
+
+        CopyBtn.IsEnabled = false;
+
+        try
+        {
+            using (FileStream sourceStream = File.OpenRead(fromFile))
+            using (FileStream destinationStream = File.Create(copyTo))
+            {
+                await sourceStream.CopyToAsync(destinationStream);
+            }
+
+            MessageBox.Show($"Copied {fileName} to {copyTo}");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
+        finally
+        {
+            CopyBtn.IsEnabled = true;
+        }
     }
 }
